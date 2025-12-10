@@ -1,0 +1,132 @@
+@model PriceViewModel
+@{
+    ViewData["Title"] = "صفحه اصلی";
+}
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-warning text-dark">
+                <h4 class="mb-0">
+                    <i class="bi bi-coin"></i> قیمت طلا
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <h2 class="text-warning mb-3">
+                        @Model.GoldPrice.Price.ToString("N0") تومان
+                    </h2>
+                    <div class="mb-2">
+                        @if (Model.GoldPrice.Change >= 0)
+                        {
+                            <span class="badge bg-success fs-6">
+                                <i class="bi bi-arrow-up"></i>
+                                +@Model.GoldPrice.Change.ToString("N0") تومان
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger fs-6">
+                                <i class="bi bi-arrow-down"></i>
+                                @Model.GoldPrice.Change.ToString("N0") تومان
+                            </span>
+                        }
+                    </div>
+                    <div>
+                        @if (Model.GoldPrice.ChangePercent >= 0)
+                        {
+                            <span class="text-success">
+                                <i class="bi bi-arrow-up"></i>
+                                +@Model.GoldPrice.ChangePercent.ToString("F2")%
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-danger">
+                                <i class="bi bi-arrow-down"></i>
+                                @Model.GoldPrice.ChangePercent.ToString("F2")%
+                            </span>
+                        }
+                    </div>
+                    <small class="text-muted d-block mt-3">
+                        آخرین بروزرسانی: @Model.GoldPrice.LastUpdate.ToString("HH:mm:ss")
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-lg border-0">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-currency-dollar"></i> قیمت دلار
+                </h4>
+            </div>
+            <div class="card-body">
+                <div class="text-center">
+                    <h2 class="text-success mb-3">
+                        @Model.DollarPrice.Price.ToString("N0") تومان
+                    </h2>
+                    <div class="mb-2">
+                        @if (Model.DollarPrice.Change >= 0)
+                        {
+                            <span class="badge bg-success fs-6">
+                                <i class="bi bi-arrow-up"></i>
+                                +@Model.DollarPrice.Change.ToString("N0") تومان
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger fs-6">
+                                <i class="bi bi-arrow-down"></i>
+                                @Model.DollarPrice.Change.ToString("N0") تومان
+                            </span>
+                        }
+                    </div>
+                    <div>
+                        @if (Model.DollarPrice.ChangePercent >= 0)
+                        {
+                            <span class="text-success">
+                                <i class="bi bi-arrow-up"></i>
+                                +@Model.DollarPrice.ChangePercent.ToString("F2")%
+                            </span>
+                        }
+                        else
+                        {
+                            <span class="text-danger">
+                                <i class="bi bi-arrow-down"></i>
+                                @Model.DollarPrice.ChangePercent.ToString("F2")%
+                            </span>
+                        }
+                    </div>
+                    <small class="text-muted d-block mt-3">
+                        آخرین بروزرسانی: @Model.DollarPrice.LastUpdate.ToString("HH:mm:ss")
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body text-center">
+                <button class="btn btn-primary btn-lg" onclick="location.reload()">
+                    <i class="bi bi-arrow-clockwise"></i> بروزرسانی قیمت‌ها
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // بروزرسانی خودکار هر 30 ثانیه
+        setInterval(function() {
+            location.reload();
+        }, 30000);
+    </script>
+}
+
