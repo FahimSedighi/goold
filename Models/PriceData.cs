@@ -9,3 +9,5 @@ public class PriceData
     public DateTime LastUpdate { get; set; }
 }
 
+
+

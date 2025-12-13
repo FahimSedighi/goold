@@ -6,3 +6,5 @@ public class PriceViewModel
     public PriceData DollarPrice { get; set; } = new();
 }
 
+
+

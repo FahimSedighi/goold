@@ -8,3 +8,5 @@ public interface IPriceService
     Task<PriceData> GetDollarPriceAsync();
 }
 
+
+

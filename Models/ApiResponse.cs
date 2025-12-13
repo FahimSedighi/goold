@@ -29,3 +29,5 @@ public class MetalsApiResponse
     public decimal? ChangePercent { get; set; }
 }
 
+
+
