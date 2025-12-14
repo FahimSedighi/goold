@@ -21,10 +21,21 @@ public class HomeController : Controller
         {
             var goldPrice = await _priceService.GetGoldPriceAsync();
             var dollarPrice = await _priceService.GetDollarPriceAsync();
+            
+            // برای سکه، از قیمت طلا استفاده می‌کنیم (می‌توانید API جداگانه اضافه کنید)
+            var coinPrice = new PriceData
+            {
+                Name = "سکه",
+                Price = goldPrice.Price * 8.13m, // تقریباً 8.13 گرم
+                Change = goldPrice.Change * 8.13m,
+                ChangePercent = goldPrice.ChangePercent,
+                LastUpdate = goldPrice.LastUpdate
+            };
 
             var model = new PriceViewModel
             {
                 GoldPrice = goldPrice,
+                CoinPrice = coinPrice,
                 DollarPrice = dollarPrice
             };
 
@@ -37,6 +48,7 @@ public class HomeController : Controller
         }
     }
 }
+
 
 
 

@@ -1,135 +1,300 @@
 @model PriceViewModel
 @{
-    ViewData["Title"] = "صفحه اصلی";
+    ViewData["Title"] = "داشبورد مالی";
 }
 
-<div class="row">
-    <div class="col-md-6 mb-4">
-        <div class="card shadow-lg border-0">
-            <div class="card-header bg-warning text-dark">
-                <h4 class="mb-0">
-                    <i class="bi bi-coin"></i> قیمت طلا
-                </h4>
-            </div>
-            <div class="card-body">
-                <div class="text-center">
-                    <h2 class="text-warning mb-3">
-                        @Model.GoldPrice.Price.ToString("N0") تومان
-                    </h2>
-                    <div class="mb-2">
-                        @if (Model.GoldPrice.Change >= 0)
-                        {
-                            <span class="badge bg-success fs-6">
-                                <i class="bi bi-arrow-up"></i>
-                                +@Model.GoldPrice.Change.ToString("N0") تومان
-                            </span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-danger fs-6">
-                                <i class="bi bi-arrow-down"></i>
-                                @Model.GoldPrice.Change.ToString("N0") تومان
-                            </span>
-                        }
-                    </div>
-                    <div>
-                        @if (Model.GoldPrice.ChangePercent >= 0)
-                        {
-                            <span class="text-success">
-                                <i class="bi bi-arrow-up"></i>
-                                +@Model.GoldPrice.ChangePercent.ToString("F2")%
-                            </span>
-                        }
-                        else
-                        {
-                            <span class="text-danger">
-                                <i class="bi bi-arrow-down"></i>
-                                @Model.GoldPrice.ChangePercent.ToString("F2")%
-                            </span>
-                        }
-                    </div>
-                    <small class="text-muted d-block mt-3">
-                        آخرین بروزرسانی: @Model.GoldPrice.LastUpdate.ToString("HH:mm:ss")
-                    </small>
+<div class="dashboard-container">
+    <!-- Header with Dark Mode Toggle -->
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">
+            <i class="bi bi-graph-up-arrow"></i>
+            داشبورد مالی
+        </h1>
+        <button class="theme-toggle" id="themeToggle" aria-label="تغییر تم">
+            <i class="bi bi-moon-fill" id="themeIcon"></i>
+        </button>
+    </div>
+
+    <!-- Price Cards Section -->
+    <div class="price-cards-grid">
+        <!-- Gold 18k Card -->
+        <div class="price-card gold-card">
+            <div class="card-header-section">
+                <div class="card-icon gold-icon">
+                    <i class="bi bi-gem"></i>
                 </div>
+                <div class="card-title-section">
+                    <h3 class="card-title">طلای 18 عیار</h3>
+                    <span class="card-subtitle">هر گرم</span>
+                </div>
+            </div>
+            <div class="card-price-section">
+                <div class="price-value">@Model.GoldPrice.Price.ToString("N0")</div>
+                <div class="price-unit">تومان</div>
+            </div>
+            <div class="card-change-section">
+                <div class="change-indicator @(Model.GoldPrice.ChangePercent >= 0 ? "positive" : "negative")">
+                    <i class="bi @(Model.GoldPrice.ChangePercent >= 0 ? "bi-arrow-up" : "bi-arrow-down")"></i>
+                    <span class="change-value">@Math.Abs(Model.GoldPrice.ChangePercent).ToString("F2")%</span>
+                </div>
+                <div class="change-amount">@(Model.GoldPrice.Change >= 0 ? "+" : "")@Model.GoldPrice.Change.ToString("N0") تومان</div>
+            </div>
+            <div class="card-footer">
+                <small class="update-time">
+                    <i class="bi bi-clock"></i>
+                    @Model.GoldPrice.LastUpdate.ToString("HH:mm:ss")
+                </small>
+            </div>
+        </div>
+
+        <!-- Coin Card -->
+        <div class="price-card coin-card">
+            <div class="card-header-section">
+                <div class="card-icon coin-icon">
+                    <i class="bi bi-coin"></i>
+                </div>
+                <div class="card-title-section">
+                    <h3 class="card-title">سکه</h3>
+                    <span class="card-subtitle">هر عدد</span>
+                </div>
+            </div>
+            <div class="card-price-section">
+                <div class="price-value">@Model.CoinPrice.Price.ToString("N0")</div>
+                <div class="price-unit">تومان</div>
+            </div>
+            <div class="card-change-section">
+                <div class="change-indicator @(Model.CoinPrice.ChangePercent >= 0 ? "positive" : "negative")">
+                    <i class="bi @(Model.CoinPrice.ChangePercent >= 0 ? "bi-arrow-up" : "bi-arrow-down")"></i>
+                    <span class="change-value">@Math.Abs(Model.CoinPrice.ChangePercent).ToString("F2")%</span>
+                </div>
+                <div class="change-amount">@(Model.CoinPrice.Change >= 0 ? "+" : "")@Model.CoinPrice.Change.ToString("N0") تومان</div>
+            </div>
+            <div class="card-footer">
+                <small class="update-time">
+                    <i class="bi bi-clock"></i>
+                    @Model.CoinPrice.LastUpdate.ToString("HH:mm:ss")
+                </small>
+            </div>
+        </div>
+
+        <!-- US Dollar Card -->
+        <div class="price-card dollar-card">
+            <div class="card-header-section">
+                <div class="card-icon dollar-icon">
+                    <i class="bi bi-currency-dollar"></i>
+                </div>
+                <div class="card-title-section">
+                    <h3 class="card-title">دلار آمریکا</h3>
+                    <span class="card-subtitle">هر واحد</span>
+                </div>
+            </div>
+            <div class="card-price-section">
+                <div class="price-value">@Model.DollarPrice.Price.ToString("N0")</div>
+                <div class="price-unit">تومان</div>
+            </div>
+            <div class="card-change-section">
+                <div class="change-indicator @(Model.DollarPrice.ChangePercent >= 0 ? "positive" : "negative")">
+                    <i class="bi @(Model.DollarPrice.ChangePercent >= 0 ? "bi-arrow-up" : "bi-arrow-down")"></i>
+                    <span class="change-value">@Math.Abs(Model.DollarPrice.ChangePercent).ToString("F2")%</span>
+                </div>
+                <div class="change-amount">@(Model.DollarPrice.Change >= 0 ? "+" : "")@Model.DollarPrice.Change.ToString("N0") تومان</div>
+            </div>
+            <div class="card-footer">
+                <small class="update-time">
+                    <i class="bi bi-clock"></i>
+                    @Model.DollarPrice.LastUpdate.ToString("HH:mm:ss")
+                </small>
             </div>
         </div>
     </div>
 
-    <div class="col-md-6 mb-4">
-        <div class="card shadow-lg border-0">
-            <div class="card-header bg-success text-white">
-                <h4 class="mb-0">
-                    <i class="bi bi-currency-dollar"></i> قیمت دلار
-                </h4>
-            </div>
-            <div class="card-body">
-                <div class="text-center">
-                    <h2 class="text-success mb-3">
-                        @Model.DollarPrice.Price.ToString("N0") تومان
-                    </h2>
-                    <div class="mb-2">
-                        @if (Model.DollarPrice.Change >= 0)
-                        {
-                            <span class="badge bg-success fs-6">
-                                <i class="bi bi-arrow-up"></i>
-                                +@Model.DollarPrice.Change.ToString("N0") تومان
-                            </span>
-                        }
-                        else
-                        {
-                            <span class="badge bg-danger fs-6">
-                                <i class="bi bi-arrow-down"></i>
-                                @Model.DollarPrice.Change.ToString("N0") تومان
-                            </span>
-                        }
+    <!-- Chart Section -->
+    <div class="chart-section">
+        <div class="chart-card">
+            <div class="chart-header">
+                <h2 class="chart-title">
+                    <i class="bi bi-graph-up"></i>
+                    روند قیمت‌ها
+                </h2>
+                <div class="chart-legend">
+                    <div class="legend-item">
+                        <span class="legend-color gold-legend"></span>
+                        <span>طلای 18 عیار</span>
                     </div>
-                    <div>
-                        @if (Model.DollarPrice.ChangePercent >= 0)
-                        {
-                            <span class="text-success">
-                                <i class="bi bi-arrow-up"></i>
-                                +@Model.DollarPrice.ChangePercent.ToString("F2")%
-                            </span>
-                        }
-                        else
-                        {
-                            <span class="text-danger">
-                                <i class="bi bi-arrow-down"></i>
-                                @Model.DollarPrice.ChangePercent.ToString("F2")%
-                            </span>
-                        }
+                    <div class="legend-item">
+                        <span class="legend-color coin-legend"></span>
+                        <span>سکه</span>
                     </div>
-                    <small class="text-muted d-block mt-3">
-                        آخرین بروزرسانی: @Model.DollarPrice.LastUpdate.ToString("HH:mm:ss")
-                    </small>
+                    <div class="legend-item">
+                        <span class="legend-color dollar-legend"></span>
+                        <span>دلار</span>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
-</div>
-
-<div class="row mt-4">
-    <div class="col-12">
-        <div class="card">
-            <div class="card-body text-center">
-                <button class="btn btn-primary btn-lg" onclick="location.reload()">
-                    <i class="bi bi-arrow-clockwise"></i> بروزرسانی قیمت‌ها
-                </button>
+            <div class="chart-container">
+                <canvas id="priceChart"></canvas>
             </div>
         </div>
     </div>
 </div>
 
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <script>
-        // بروزرسانی خودکار هر 30 ثانیه
+        // Dark Mode Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const body = document.body;
+
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            body.classList.add('dark-mode');
+            themeIcon.classList.remove('bi-moon-fill');
+            themeIcon.classList.add('bi-sun-fill');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            const isDark = body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            themeIcon.classList.toggle('bi-moon-fill');
+            themeIcon.classList.toggle('bi-sun-fill');
+        });
+
+        // Chart Data
+        const goldPrice = @Model.GoldPrice.Price;
+        const coinPrice = @Model.CoinPrice.Price;
+        const dollarPrice = @Model.DollarPrice.Price;
+
+        // Generate sample data for the last 24 hours
+        const labels = [];
+        const goldData = [];
+        const coinData = [];
+        const dollarData = [];
+
+        for (let i = 23; i >= 0; i--) {
+            const date = new Date();
+            date.setHours(date.getHours() - i);
+            labels.push(date.toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' }));
+            
+            // Simulate price variations
+            const variation = (Math.random() - 0.5) * 0.05; // ±2.5% variation
+            goldData.push(goldPrice * (1 + variation));
+            coinData.push(coinPrice * (1 + variation));
+            dollarData.push(dollarPrice * (1 + variation));
+        }
+
+        // Chart Configuration
+        const ctx = document.getElementById('priceChart').getContext('2d');
+        const priceChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'طلای 18 عیار',
+                        data: goldData,
+                        borderColor: '#FFD700',
+                        backgroundColor: 'rgba(255, 215, 0, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 5
+                    },
+                    {
+                        label: 'سکه',
+                        data: coinData,
+                        borderColor: '#FFA500',
+                        backgroundColor: 'rgba(255, 165, 0, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 5
+                    },
+                    {
+                        label: 'دلار',
+                        data: dollarData,
+                        borderColor: '#28a745',
+                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0,
+                        pointHoverRadius: 5
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.8)',
+                        padding: 12,
+                        titleFont: {
+                            size: 14,
+                            weight: 'bold'
+                        },
+                        bodyFont: {
+                            size: 13
+                        },
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + context.parsed.y.toLocaleString('fa-IR') + ' تومان';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        grid: {
+                            display: false
+                        },
+                        ticks: {
+                            maxRotation: 0,
+                            minRotation: 0,
+                            font: {
+                                size: 11
+                            }
+                        }
+                    },
+                    y: {
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        },
+                        ticks: {
+                            callback: function(value) {
+                                return value.toLocaleString('fa-IR');
+                            },
+                            font: {
+                                size: 11
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        // Update chart theme on mode change
+        themeToggle.addEventListener('click', () => {
+            setTimeout(() => {
+                priceChart.update();
+            }, 100);
+        });
+
+        // Auto refresh every 30 seconds
         setInterval(function() {
             location.reload();
         }, 30000);
     </script>
 }
-
-
-
-
