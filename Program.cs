@@ -1,24 +1,40 @@
-using GoldPriceTracker.Models;
-using GoldPriceTracker.Services;
+using FluentValidation;
+using GoldPriceTracker.Application.Common.Behaviors;
+using GoldPriceTracker.Application.Interfaces.Repositories;
+using GoldPriceTracker.Infrastructure.ExternalServices;
+using GoldPriceTracker.Infrastructure.ExternalServices.Interfaces;
+using GoldPriceTracker.Infrastructure.Persistence.Repositories;
+using GoldPriceTracker.Infrastructure.Security;
+using GoldPriceTracker.Infrastructure.Security.Interfaces;
+using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using System.Reflection;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// Add MediatR for CQRS pattern
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+
+// Add FluentValidation
+builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+
+// Add MediatR pipeline behaviors
+builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+// Infrastructure - Security
+builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
+
+// Infrastructure - Persistence (Repositories)
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+
+// Infrastructure - External Services
 builder.Services.AddHttpClient();
-
-// Password hashing
-builder.Services.AddScoped<IPasswordHasher<User>, CustomPasswordHasher>();
-
-// User and Auth services
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<IUserProfileService, UserProfileService>();
-builder.Services.AddScoped<IJwtService, JwtService>();
-builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IPriceService, PriceService>();
 
 // JWT Authentication
@@ -85,8 +101,3 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
-
-
-
-
-
