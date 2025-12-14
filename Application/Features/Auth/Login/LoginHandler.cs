@@ -1,5 +1,6 @@
 using GoldPriceTracker.Application.Common.Interfaces;
 using GoldPriceTracker.Application.Interfaces.Repositories;
+using GoldPriceTracker.Application.Services.User.Profile;
 using GoldPriceTracker.Domain.Entities;
 using GoldPriceTracker.Infrastructure.Security.Interfaces;
 using GoldPriceTracker.Shared.Contracts.DTOs;
@@ -17,17 +18,20 @@ public class LoginHandler : IRequestHandler<LoginCommand, AuthResponse>
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
     private readonly IJwtTokenService _jwtTokenService;
+    private readonly IUserProfileService _userProfileService;
     private readonly ILogger<LoginHandler> _logger;
 
     public LoginHandler(
         IUserRepository userRepository,
         IPasswordHasher passwordHasher,
         IJwtTokenService jwtTokenService,
+        IUserProfileService userProfileService,
         ILogger<LoginHandler> logger)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
         _jwtTokenService = jwtTokenService;
+        _userProfileService = userProfileService;
         _logger = logger;
     }
 
@@ -77,6 +81,9 @@ public class LoginHandler : IRequestHandler<LoginCommand, AuthResponse>
 
             // Update last login
             await _userRepository.UpdateLastLoginAsync(user.Id);
+
+            // Add login activity
+            _userProfileService.AddActivity(user.Id, "login", "ورود به سیستم", "bi-box-arrow-in-right");
 
             _logger.LogInformation($"User logged in successfully: {user.Email}");
 

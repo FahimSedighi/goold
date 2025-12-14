@@ -33,6 +33,11 @@ builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 // Infrastructure - Persistence (Repositories)
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
+// Application - Services (Feature-based organization)
+builder.Services.AddScoped<GoldPriceTracker.Application.Services.User.Profile.IUserProfileService, GoldPriceTracker.Application.Services.User.Profile.UserProfileService>();
+builder.Services.AddScoped<GoldPriceTracker.Application.Services.Dashboard.Interfaces.IUserDashboardService, GoldPriceTracker.Application.Services.Dashboard.UserDashboardService>();
+builder.Services.AddScoped<GoldPriceTracker.Application.Services.Common.IDateTimeService, GoldPriceTracker.Application.Services.Common.DateTimeService>();
+
 // Infrastructure - External Services
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IPriceService, PriceService>();
