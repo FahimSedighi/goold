@@ -4,12 +4,89 @@
 }
 
 <div class="dashboard-container">
-    <!-- Header with Dark Mode Toggle -->
-    <div class="dashboard-header">
-        <h1 class="dashboard-title">
-            <i class="bi bi-graph-up-arrow"></i>
-            داشبورد مالی
-        </h1>
+    <!-- Top Bar with Login Section -->
+    <div class="dashboard-topbar">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">
+                <i class="bi bi-graph-up-arrow"></i>
+                داشبورد مالی
+            </h1>
+        </div>
+        
+        <!-- Login Section -->
+        <div class="login-section">
+            <button class="login-toggle-btn" id="loginToggleBtn">
+                <i class="bi bi-person-circle"></i>
+                <span>ورود</span>
+            </button>
+            
+            <!-- Login Dropdown -->
+            <div class="login-dropdown" id="loginDropdown">
+                <div class="login-dropdown-header">
+                    <h3>ورود به حساب کاربری</h3>
+                    <button class="close-login" id="closeLogin">
+                        <i class="bi bi-x-lg"></i>
+                    </button>
+                </div>
+                
+                <form id="loginForm" class="login-form-inline">
+                    @Html.AntiForgeryToken()
+                    
+                    <div id="loginError" class="login-error-message" style="display: none;"></div>
+                    
+                    <div class="form-group-inline">
+                        <label for="EmailOrUsername">
+                            <i class="bi bi-person-fill"></i>
+                            ایمیل یا نام کاربری
+                        </label>
+                        <input id="EmailOrUsername" 
+                               name="EmailOrUsername"
+                               type="text" 
+                               class="form-input-inline" 
+                               placeholder="ایمیل یا نام کاربری"
+                               autocomplete="username"
+                               required />
+                        <span class="validation-error-inline" id="emailError"></span>
+                    </div>
+
+                    <div class="form-group-inline">
+                        <label for="Password">
+                            <i class="bi bi-lock-fill"></i>
+                            رمز عبور
+                        </label>
+                        <div class="password-input-wrapper">
+                            <input id="Password" 
+                                   name="Password"
+                                   type="password" 
+                                   class="form-input-inline" 
+                                   placeholder="رمز عبور"
+                                   autocomplete="current-password"
+                                   required />
+                            <button type="button" class="password-toggle-inline" id="inlinePasswordToggle">
+                                <i class="bi bi-eye" id="inlinePasswordIcon"></i>
+                            </button>
+                        </div>
+                        <span class="validation-error-inline" id="passwordError"></span>
+                    </div>
+
+                    <div class="form-options-inline">
+                        <label class="checkbox-label-inline">
+                            <input id="RememberMe" name="RememberMe" type="checkbox" class="checkbox-input-inline" />
+                            <span class="checkbox-custom-inline"></span>
+                            <span class="checkbox-text-inline">مرا به خاطر بسپار</span>
+                        </label>
+                        <a href="#" class="forgot-password-link-inline">فراموشی رمز عبور</a>
+                    </div>
+
+                    <button type="submit" class="login-button-inline" id="loginSubmitBtn">
+                        <span>ورود</span>
+                        <i class="bi bi-arrow-left"></i>
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Theme Toggle -->
         <button class="theme-toggle" id="themeToggle" aria-label="تغییر تم">
             <i class="bi bi-moon-fill" id="themeIcon"></i>
         </button>
@@ -140,6 +217,9 @@
 
 @section Scripts {
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation@1.19.5/dist/jquery.validate.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery-validation-unobtrusive@3.2.12/dist/jquery.validate.unobtrusive.min.js"></script>
     <script>
         // Dark Mode Toggle
         const themeToggle = document.getElementById('themeToggle');
@@ -161,6 +241,48 @@
             themeIcon.classList.toggle('bi-moon-fill');
             themeIcon.classList.toggle('bi-sun-fill');
         });
+
+        // Login Dropdown Toggle
+        const loginToggleBtn = document.getElementById('loginToggleBtn');
+        const loginDropdown = document.getElementById('loginDropdown');
+        const closeLogin = document.getElementById('closeLogin');
+
+        if (loginToggleBtn && loginDropdown) {
+            loginToggleBtn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                loginDropdown.classList.toggle('show');
+            });
+
+            if (closeLogin) {
+                closeLogin.addEventListener('click', () => {
+                    loginDropdown.classList.remove('show');
+                });
+            }
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', (e) => {
+                if (!loginDropdown.contains(e.target) && !loginToggleBtn.contains(e.target)) {
+                    loginDropdown.classList.remove('show');
+                }
+            });
+        }
+
+        // Password Toggle
+        const inlinePasswordToggle = document.getElementById('inlinePasswordToggle');
+        const inlinePassword = document.getElementById('inlinePassword');
+        const inlinePasswordIcon = document.getElementById('inlinePasswordIcon');
+
+        if (inlinePasswordToggle && inlinePassword) {
+            inlinePasswordToggle.addEventListener('click', () => {
+                const type = inlinePassword.getAttribute('type') === 'password' ? 'text' : 'password';
+                inlinePassword.setAttribute('type', type);
+                
+                if (inlinePasswordIcon) {
+                    inlinePasswordIcon.classList.toggle('bi-eye');
+                    inlinePasswordIcon.classList.toggle('bi-eye-slash');
+                }
+            });
+        }
 
         // Chart Data
         const goldPrice = @Model.GoldPrice.Price;
