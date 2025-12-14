@@ -12,6 +12,7 @@ public class UserService : IUserService
     // In-memory storage for demo (replace with database in production)
     private static readonly List<User> _users = new();
     private static int _nextId = 1;
+    private static bool _demoUserInitialized = false;
 
     public UserService(ILogger<UserService> logger, IPasswordHasher<User> passwordHasher)
     {
@@ -24,11 +25,18 @@ public class UserService : IUserService
 
     private void InitializeDemoUser()
     {
-        if (!_users.Any())
+        if (!_demoUserInitialized)
         {
+            // Remove existing demo user if exists
+            var existingUser = _users.FirstOrDefault(u => u.Username == "admin" || u.Email == "admin@example.com");
+            if (existingUser != null)
+            {
+                _users.Remove(existingUser);
+            }
+
             var demoUser = new User
             {
-                Id = _nextId++,
+                Id = 1,
                 Username = "admin",
                 Email = "admin@example.com",
                 CreatedAt = DateTime.UtcNow,
@@ -36,7 +44,19 @@ public class UserService : IUserService
             };
             demoUser.PasswordHash = _passwordHasher.HashPassword(demoUser, "Admin123!");
             _users.Add(demoUser);
+            _nextId = 2;
+            _demoUserInitialized = true;
             _logger.LogInformation("Demo user created: admin@example.com / Admin123!");
+            _logger.LogInformation($"Password hash length: {demoUser.PasswordHash.Length}");
+            _logger.LogInformation($"Password hash (first 50 chars): {demoUser.PasswordHash.Substring(0, Math.Min(50, demoUser.PasswordHash.Length))}");
+            
+            // Test the password immediately
+            var testResult = _passwordHasher.VerifyHashedPassword(demoUser, demoUser.PasswordHash, "Admin123!");
+            _logger.LogInformation($"Password test result after creation: {testResult}");
+            if (testResult != PasswordVerificationResult.Success)
+            {
+                _logger.LogError("ERROR: Password verification failed immediately after creation!");
+            }
         }
     }
 
@@ -77,9 +97,20 @@ public class UserService : IUserService
     public Task<bool> ValidatePasswordAsync(User user, string password)
     {
         if (user == null || string.IsNullOrEmpty(password))
+        {
+            _logger.LogWarning("ValidatePasswordAsync: user is null or password is empty");
             return Task.FromResult(false);
+        }
+
+        _logger.LogInformation($"Validating password for user: {user.Email}");
+        _logger.LogInformation($"Stored hash length: {user.PasswordHash?.Length}");
+        _logger.LogInformation($"Stored hash (first 30 chars): {user.PasswordHash?.Substring(0, Math.Min(30, user.PasswordHash?.Length ?? 0))}");
+        _logger.LogInformation($"Provided password length: {password.Length}");
+        _logger.LogInformation($"Provided password: {password}");
 
         var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
+        _logger.LogInformation($"Password verification result: {result}");
+        
         return Task.FromResult(result == PasswordVerificationResult.Success);
     }
 

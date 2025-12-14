@@ -1,0 +1,323 @@
+@model UserDashboardViewModel
+@{
+    ViewData["Title"] = "داشبورد کاربری";
+    Layout = "_DashboardLayout";
+}
+
+<div class="dashboard-wrapper">
+    <!-- Sidebar -->
+    <aside class="dashboard-sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="bi bi-graph-up-arrow"></i>
+                <span>داشبورد مالی</span>
+            </div>
+        </div>
+
+        <nav class="sidebar-nav">
+            <a href="/Dashboard" class="nav-item active">
+                <i class="bi bi-house-door"></i>
+                <span>خانه</span>
+            </a>
+            <a href="/Dashboard/Profile" class="nav-item">
+                <i class="bi bi-person"></i>
+                <span>پروفایل</span>
+            </a>
+            <a href="/Dashboard/Settings" class="nav-item">
+                <i class="bi bi-gear"></i>
+                <span>تنظیمات</span>
+            </a>
+            <a href="/Home" class="nav-item">
+                <i class="bi bi-graph-up"></i>
+                <span>قیمت‌ها</span>
+            </a>
+            <form asp-action="Logout" asp-controller="Dashboard" method="post" class="nav-item-form">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="nav-item nav-item-logout">
+                    <i class="bi bi-box-arrow-right"></i>
+                    <span>خروج</span>
+                </button>
+            </form>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-info">
+                <div class="user-avatar">
+                    <i class="bi bi-person-circle"></i>
+                </div>
+                <div class="user-details">
+                    <div class="user-name">@Model.Profile.Username</div>
+                    <div class="user-email">@Model.Profile.Email</div>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <div class="dashboard-header">
+            <h1 class="page-title">داشبورد کاربری</h1>
+            <button class="theme-toggle" id="themeToggle" aria-label="تغییر تم">
+                <i class="bi bi-moon-fill" id="themeIcon"></i>
+            </button>
+        </div>
+
+        <!-- User Info Card -->
+        <div class="dashboard-section">
+            <div class="info-card">
+                <div class="info-card-header">
+                    <h2>
+                        <i class="bi bi-person-circle"></i>
+                        اطلاعات کاربری
+                    </h2>
+                    <button class="btn-edit" id="editProfileBtn">
+                        <i class="bi bi-pencil"></i>
+                        ویرایش
+                    </button>
+                </div>
+                <div class="info-card-body">
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="bi bi-person"></i>
+                            نام کاربری
+                        </div>
+                        <div class="info-value">@Model.Profile.Username</div>
+                    </div>
+                    <div class="info-row">
+                        <div class="info-label">
+                            <i class="bi bi-envelope"></i>
+                            ایمیل
+                        </div>
+                        <div class="info-value">@Model.Profile.Email</div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(Model.Profile.FullName))
+                    {
+                        <div class="info-row">
+                            <div class="info-label">
+                                <i class="bi bi-card-text"></i>
+                                نام کامل
+                            </div>
+                            <div class="info-value">@Model.Profile.FullName</div>
+                        </div>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.Profile.PhoneNumber))
+                    {
+                        <div class="info-row">
+                            <div class="info-label">
+                                <i class="bi bi-telephone"></i>
+                                شماره تماس
+                            </div>
+                            <div class="info-value">@Model.Profile.PhoneNumber</div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Account Summary -->
+        <div class="dashboard-section">
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <i class="bi bi-calendar-check"></i>
+                    </div>
+                    <div class="summary-content">
+                        <div class="summary-label">عضویت از</div>
+                        <div class="summary-value">@Model.Summary.MemberSince</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                    </div>
+                    <div class="summary-content">
+                        <div class="summary-label">تعداد ورود</div>
+                        <div class="summary-value">@Model.Summary.TotalLogins</div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <i class="bi bi-clock-history"></i>
+                    </div>
+                    <div class="summary-content">
+                        <div class="summary-label">آخرین ورود</div>
+                        <div class="summary-value">
+                            @(Model.Summary.LastLoginDate?.ToString("yyyy/MM/dd HH:mm") ?? "ندارد")
+                        </div>
+                    </div>
+                </div>
+                <div class="summary-card">
+                    <div class="summary-icon">
+                        <i class="bi bi-check-circle"></i>
+                    </div>
+                    <div class="summary-content">
+                        <div class="summary-label">وضعیت حساب</div>
+                        <div class="summary-value status-active">@Model.Summary.AccountStatus</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activities -->
+        <div class="dashboard-section">
+            <div class="activities-card">
+                <div class="activities-header">
+                    <h2>
+                        <i class="bi bi-clock-history"></i>
+                        فعالیت‌های اخیر
+                    </h2>
+                </div>
+                <div class="activities-body">
+                    @if (Model.RecentActivities.Any())
+                    {
+                        <div class="activities-list">
+                            @foreach (var activity in Model.RecentActivities)
+                            {
+                                <div class="activity-item">
+                                    <div class="activity-icon">
+                                        <i class="@activity.Icon"></i>
+                                    </div>
+                                    <div class="activity-content">
+                                        <div class="activity-description">@activity.Description</div>
+                                        <div class="activity-time">@activity.Timestamp.ToString("yyyy/MM/dd HH:mm")</div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>هیچ فعالیتی ثبت نشده است</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal" id="editProfileModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>ویرایش پروفایل</h3>
+            <button class="modal-close" id="closeModal">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
+        <form id="profileForm" class="modal-body">
+            <div class="form-group">
+                <label for="FullName">
+                    <i class="bi bi-card-text"></i>
+                    نام کامل
+                </label>
+                <input type="text" id="FullName" name="FullName" class="form-input" 
+                       value="@Model.Profile.FullName" placeholder="نام کامل خود را وارد کنید" />
+            </div>
+            <div class="form-group">
+                <label for="PhoneNumber">
+                    <i class="bi bi-telephone"></i>
+                    شماره تماس
+                </label>
+                <input type="tel" id="PhoneNumber" name="PhoneNumber" class="form-input" 
+                       value="@Model.Profile.PhoneNumber" placeholder="شماره تماس خود را وارد کنید" />
+            </div>
+            <div class="form-group">
+                <label for="Email">
+                    <i class="bi bi-envelope"></i>
+                    ایمیل
+                </label>
+                <input type="email" id="Email" name="Email" class="form-input" 
+                       value="@Model.Profile.Email" placeholder="ایمیل خود را وارد کنید" />
+            </div>
+            <div class="form-actions">
+                <button type="button" class="btn-cancel" id="cancelBtn">انصراف</button>
+                <button type="submit" class="btn-save">ذخیره تغییرات</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Dark Mode Toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const body = document.body;
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        if (savedTheme === 'dark') {
+            body.classList.add('dark-mode');
+            themeIcon.classList.remove('bi-moon-fill');
+            themeIcon.classList.add('bi-sun-fill');
+        }
+
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-mode');
+            const isDark = body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            themeIcon.classList.toggle('bi-moon-fill');
+            themeIcon.classList.toggle('bi-sun-fill');
+        });
+
+        // Profile Edit Modal
+        const editProfileBtn = document.getElementById('editProfileBtn');
+        const editProfileModal = document.getElementById('editProfileModal');
+        const closeModal = document.getElementById('closeModal');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const profileForm = document.getElementById('profileForm');
+
+        editProfileBtn?.addEventListener('click', () => {
+            editProfileModal?.classList.add('show');
+        });
+
+        const closeModalFunc = () => {
+            editProfileModal?.classList.remove('show');
+        };
+
+        closeModal?.addEventListener('click', closeModalFunc);
+        cancelBtn?.addEventListener('click', closeModalFunc);
+
+        editProfileModal?.addEventListener('click', (e) => {
+            if (e.target === editProfileModal) {
+                closeModalFunc();
+            }
+        });
+
+        // Profile Form Submission
+        profileForm?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                FullName: document.getElementById('FullName').value,
+                PhoneNumber: document.getElementById('PhoneNumber').value,
+                Email: document.getElementById('Email').value
+            };
+
+            try {
+                const response = await fetch('/api/user/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('پروفایل با موفقیت به‌روزرسانی شد');
+                    location.reload();
+                } else {
+                    alert(result.message || 'خطا در به‌روزرسانی پروفایل');
+                }
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('خطا در ارتباط با سرور');
+            }
+        });
+    </script>
+}
+

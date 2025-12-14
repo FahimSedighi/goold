@@ -24,9 +24,22 @@ public class AuthService : IAuthService
     {
         try
         {
+            _logger.LogInformation($"AuthService.LoginAsync called - EmailOrUsername: {request?.EmailOrUsername}, RememberMe: {request?.RememberMe}");
+            
             // Validation
+            if (request == null)
+            {
+                _logger.LogWarning("LoginRequest is null");
+                return new AuthResponse
+                {
+                    Success = false,
+                    Message = "درخواست نامعتبر است"
+                };
+            }
+
             if (string.IsNullOrWhiteSpace(request.EmailOrUsername))
             {
+                _logger.LogWarning("EmailOrUsername is empty");
                 return new AuthResponse
                 {
                     Success = false,
@@ -36,6 +49,7 @@ public class AuthService : IAuthService
 
             if (string.IsNullOrWhiteSpace(request.Password))
             {
+                _logger.LogWarning("Password is empty");
                 return new AuthResponse
                 {
                     Success = false,
@@ -44,10 +58,12 @@ public class AuthService : IAuthService
             }
 
             // Find user
+            _logger.LogInformation($"Looking for user with email/username: {request.EmailOrUsername}");
             var user = await _userService.GetUserByEmailOrUsernameAsync(request.EmailOrUsername);
             if (user == null)
             {
                 _logger.LogWarning($"Login attempt with invalid email/username: {request.EmailOrUsername}");
+                _logger.LogWarning("User not found in database");
                 return new AuthResponse
                 {
                     Success = false,
@@ -55,17 +71,26 @@ public class AuthService : IAuthService
                 };
             }
 
+            _logger.LogInformation($"User found: {user.Email}, Username: {user.Username}");
+            _logger.LogInformation($"User password hash length: {user.PasswordHash?.Length}");
+
             // Validate password
+            _logger.LogInformation($"Validating password for user: {user.Email}");
             var isPasswordValid = await _userService.ValidatePasswordAsync(user, request.Password);
             if (!isPasswordValid)
             {
                 _logger.LogWarning($"Invalid password attempt for user: {user.Email}");
+                _logger.LogWarning($"Password hash stored (first 50 chars): {user.PasswordHash?.Substring(0, Math.Min(50, user.PasswordHash?.Length ?? 0))}");
+                _logger.LogWarning($"Password provided: {request.Password}");
+                _logger.LogWarning($"Password provided length: {request.Password?.Length}");
                 return new AuthResponse
                 {
                     Success = false,
                     Message = "ایمیل یا نام کاربری یا رمز عبور اشتباه است"
                 };
             }
+
+            _logger.LogInformation($"Password validated successfully for user: {user.Email}");
 
             // Check if user is active
             if (!user.IsActive)

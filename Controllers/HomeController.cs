@@ -111,7 +111,7 @@ public class HomeController : Controller
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = true,
+                Secure = Request.IsHttps,
                 SameSite = SameSiteMode.Strict,
                 Expires = authResponse.ExpiresAt
             };
@@ -124,8 +124,18 @@ public class HomeController : Controller
             }
         }
 
+        // Add login activity
+        if (authResponse.User != null)
+        {
+            var userProfileService = HttpContext.RequestServices.GetService<IUserProfileService>();
+            if (userProfileService is UserProfileService profileService)
+            {
+                profileService.AddActivity(authResponse.User.Id, "login", "ورود به سیستم", "bi-box-arrow-in-right");
+            }
+        }
+
         // Redirect to dashboard after successful login
-        return RedirectToAction("Index");
+        return RedirectToAction("Index", "Dashboard");
     }
 
     [HttpPost]

@@ -269,7 +269,7 @@
 
         // Password Toggle
         const inlinePasswordToggle = document.getElementById('inlinePasswordToggle');
-        const inlinePassword = document.getElementById('inlinePassword');
+        const inlinePassword = document.getElementById('Password');
         const inlinePasswordIcon = document.getElementById('inlinePasswordIcon');
 
         if (inlinePasswordToggle && inlinePassword) {
@@ -280,6 +280,71 @@
                 if (inlinePasswordIcon) {
                     inlinePasswordIcon.classList.toggle('bi-eye');
                     inlinePasswordIcon.classList.toggle('bi-eye-slash');
+                }
+            });
+        }
+
+        // Login Form Submission
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+        const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+
+        if (loginForm) {
+            loginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Hide previous errors
+                if (loginError) loginError.style.display = 'none';
+                const emailError = document.getElementById('emailError');
+                const passwordError = document.getElementById('passwordError');
+                if (emailError) emailError.textContent = '';
+                if (passwordError) passwordError.textContent = '';
+                
+                // Disable button
+                if (loginSubmitBtn) {
+                    loginSubmitBtn.disabled = true;
+                    loginSubmitBtn.classList.add('loading');
+                }
+
+                const formData = {
+                    EmailOrUsername: document.getElementById('EmailOrUsername').value,
+                    Password: document.getElementById('Password').value,
+                    RememberMe: document.getElementById('RememberMe').checked
+                };
+
+                try {
+                    const response = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        // Success - redirect to dashboard
+                        window.location.href = '/Dashboard';
+                    } else {
+                        // Show error
+                        if (loginError) {
+                            loginError.textContent = result.message || 'خطا در ورود';
+                            loginError.style.display = 'block';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Login error:', error);
+                    if (loginError) {
+                        loginError.textContent = 'خطا در ارتباط با سرور';
+                        loginError.style.display = 'block';
+                    }
+                } finally {
+                    if (loginSubmitBtn) {
+                        loginSubmitBtn.disabled = false;
+                        loginSubmitBtn.classList.remove('loading');
+                    }
                 }
             });
         }
