@@ -43,8 +43,7 @@ public class HomeController : Controller
             {
                 GoldPrice = goldPrice,
                 CoinPrice = coinPrice,
-                DollarPrice = dollarPrice,
-                LoginModel = new LoginViewModel()
+                DollarPrice = dollarPrice
             };
 
             return View(model);

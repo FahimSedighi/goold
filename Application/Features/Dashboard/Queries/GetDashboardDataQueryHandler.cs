@@ -9,7 +9,7 @@ namespace GoldPriceTracker.Application.Features.Dashboard.Queries;
 /// <summary>
 /// Handler for GetDashboardDataQuery.
 /// Implements CQRS pattern - handles the query logic.
-/// Aggregates data from external microservices (AuthService, UserService).
+/// Aggregates data from external microservices (UserService).
 /// </summary>
 public class GetDashboardDataQueryHandler : IRequestHandler<GetDashboardDataQuery, UserDashboardViewModel>
 {

@@ -1,8 +1,6 @@
-using System.Security.Claims;
 using GoldPriceTracker.Application.Features.Dashboard.Queries;
 using GoldPriceTracker.Shared.Contracts.DTOs;
 using MediatR;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GoldPriceTracker.Api.Controllers;
@@ -11,8 +9,8 @@ namespace GoldPriceTracker.Api.Controllers;
 /// Dashboard controller - thin API layer.
 /// Uses CQRS pattern via MediatR for queries.
 /// Aggregates data from external microservices.
+/// Note: Authentication is handled by AuthService. This controller is open for gateway-level protection.
 /// </summary>
-[Authorize]
 public class DashboardController : Controller
 {
     private readonly IMediator _mediator;
@@ -25,16 +23,16 @@ public class DashboardController : Controller
     }
 
     /// <summary>
-    /// Main dashboard page - requires authentication via JWT.
+    /// Main dashboard page.
+    /// Note: User ID should be passed via query parameter or header from gateway.
     /// </summary>
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index([FromQuery] Guid? userId)
     {
         try
         {
-            var userId = GetCurrentUserId();
             if (userId == null)
             {
-                _logger.LogWarning("Unauthenticated user attempted to access dashboard");
+                _logger.LogWarning("Dashboard accessed without userId");
                 return RedirectToAction("Index", "Home");
             }
 
@@ -53,19 +51,13 @@ public class DashboardController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdateProfile(UpdateProfileRequest request)
+    public async Task<IActionResult> UpdateProfile([FromQuery] Guid userId, UpdateProfileRequest request)
     {
         try
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
-            }
-
-            var userId = GetCurrentUserId();
-            if (userId == null)
-            {
-                return Unauthorized();
             }
 
             // TODO: Implement UpdateProfileCommand - would call UserService
@@ -76,23 +68,5 @@ public class DashboardController : Controller
             _logger.LogError(ex, "Error updating profile");
             return Json(new { success = false, message = "خطا در به‌روزرسانی پروفایل" });
         }
-    }
-
-    [HttpPost]
-    public IActionResult Logout()
-    {
-        Response.Cookies.Delete("AuthToken");
-        Response.Cookies.Delete("RefreshToken");
-        return RedirectToAction("Index", "Home");
-    }
-
-    private Guid? GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
-        {
-            return userId;
-        }
-        return null;
     }
 }

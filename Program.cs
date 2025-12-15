@@ -3,10 +3,7 @@ using GoldPriceTracker.Application.Common.Behaviors;
 using GoldPriceTracker.Infrastructure.ExternalServices;
 using GoldPriceTracker.Infrastructure.ExternalServices.Interfaces;
 using MediatR;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using System.Reflection;
-using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,56 +25,7 @@ builder.Services.AddScoped<GoldPriceTracker.Application.Services.Common.IDateTim
 // Infrastructure - External Services
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IPriceService, PriceService>();
-builder.Services.AddScoped<IAuthServiceClient, AuthServiceClient>();
 builder.Services.AddScoped<IUserServiceClient, UserServiceClient>();
-
-// JWT Authentication - Validate tokens issued by AuthService
-// Note: This project does NOT issue tokens, only validates them
-var jwtSecretKey = builder.Configuration["AuthService:JwtSecretKey"] ?? 
-    builder.Configuration["Jwt:SecretKey"] ??
-    throw new InvalidOperationException("JWT Secret Key must be configured in appsettings.json");
-var jwtIssuer = builder.Configuration["AuthService:JwtIssuer"] ?? 
-    builder.Configuration["Jwt:Issuer"] ?? 
-    "AuthService";
-var jwtAudience = builder.Configuration["AuthService:JwtAudience"] ?? 
-    builder.Configuration["Jwt:Audience"] ?? 
-    "AuthServiceUsers";
-
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-})
-.AddJwtBearer(options =>
-{
-    options.TokenValidationParameters = new TokenValidationParameters
-    {
-        ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
-        ValidateIssuer = true,
-        ValidIssuer = jwtIssuer,
-        ValidateAudience = true,
-        ValidAudience = jwtAudience,
-        ValidateLifetime = true,
-        ClockSkew = TimeSpan.Zero
-    };
-    
-    // Read token from cookie for MVC requests
-    options.Events = new Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerEvents
-    {
-        OnMessageReceived = context =>
-        {
-            var token = context.Request.Cookies["AuthToken"];
-            if (!string.IsNullOrEmpty(token))
-            {
-                context.Token = token;
-            }
-            return Task.CompletedTask;
-        }
-    };
-});
-
-builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -92,9 +40,6 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
-app.UseAuthentication();
-app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
