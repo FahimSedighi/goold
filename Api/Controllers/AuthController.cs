@@ -1,29 +1,27 @@
-using GoldPriceTracker.Application.Features.Auth.Login;
-using GoldPriceTracker.Shared.Contracts.DTOs;
-using MediatR;
+using GoldPriceTracker.Infrastructure.ExternalServices.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace GoldPriceTracker.Api.Controllers;
 
 /// <summary>
-/// Authentication controller - thin API layer.
-/// Uses CQRS pattern via MediatR.
+/// Authentication controller - proxies requests to AuthService microservice.
+/// This project does NOT handle authentication logic, only routes requests.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class AuthController : ControllerBase
 {
-    private readonly IMediator _mediator;
+    private readonly IAuthServiceClient _authServiceClient;
     private readonly ILogger<AuthController> _logger;
 
-    public AuthController(IMediator mediator, ILogger<AuthController> logger)
+    public AuthController(IAuthServiceClient authServiceClient, ILogger<AuthController> logger)
     {
-        _mediator = mediator;
+        _authServiceClient = authServiceClient;
         _logger = logger;
     }
 
     /// <summary>
-    /// Login endpoint - uses LoginCommand via CQRS pattern.
+    /// Login endpoint - proxies to AuthService.
     /// </summary>
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
@@ -32,23 +30,11 @@ public class AuthController : ControllerBase
         
         if (request == null)
         {
-            return BadRequest(new AuthResponse
-            {
-                Success = false,
-                Message = "درخواست نامعتبر است"
-            });
+            return BadRequest(new { Success = false, Message = "درخواست نامعتبر است" });
         }
 
-        // Create command from request
-        var command = new LoginCommand
-        {
-            EmailOrUsername = request.EmailOrUsername,
-            Password = request.Password,
-            RememberMe = request.RememberMe
-        };
-
-        // Execute command via MediatR (CQRS pattern)
-        var response = await _mediator.Send(command);
+        // Proxy to AuthService
+        var response = await _authServiceClient.LoginAsync(request);
 
         if (!response.Success)
         {
@@ -77,6 +63,9 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
+    /// <summary>
+    /// Logout endpoint - clears cookies.
+    /// </summary>
     [HttpPost("logout")]
     public IActionResult Logout()
     {
@@ -86,4 +75,3 @@ public class AuthController : ControllerBase
         return Ok(new { Success = true, Message = "خروج با موفقیت انجام شد" });
     }
 }
-

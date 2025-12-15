@@ -1,11 +1,7 @@
 using FluentValidation;
 using GoldPriceTracker.Application.Common.Behaviors;
-using GoldPriceTracker.Application.Interfaces.Repositories;
 using GoldPriceTracker.Infrastructure.ExternalServices;
 using GoldPriceTracker.Infrastructure.ExternalServices.Interfaces;
-using GoldPriceTracker.Infrastructure.Persistence.Repositories;
-using GoldPriceTracker.Infrastructure.Security;
-using GoldPriceTracker.Infrastructure.Security.Interfaces;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -26,27 +22,26 @@ builder.Services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 // Add MediatR pipeline behaviors
 builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
-// Infrastructure - Security
-builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
-builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
-
-// Infrastructure - Persistence (Repositories)
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-
 // Application - Services (Feature-based organization)
-builder.Services.AddScoped<GoldPriceTracker.Application.Services.User.Profile.IUserProfileService, GoldPriceTracker.Application.Services.User.Profile.UserProfileService>();
-builder.Services.AddScoped<GoldPriceTracker.Application.Services.Dashboard.Interfaces.IUserDashboardService, GoldPriceTracker.Application.Services.Dashboard.UserDashboardService>();
 builder.Services.AddScoped<GoldPriceTracker.Application.Services.Common.IDateTimeService, GoldPriceTracker.Application.Services.Common.DateTimeService>();
 
 // Infrastructure - External Services
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<IPriceService, PriceService>();
+builder.Services.AddScoped<IAuthServiceClient, AuthServiceClient>();
+builder.Services.AddScoped<IUserServiceClient, UserServiceClient>();
 
-// JWT Authentication
-var jwtSecretKey = builder.Configuration["Jwt:SecretKey"] ?? 
-    Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(64));
-var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "GoldPriceTracker";
-var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "GoldPriceTrackerUsers";
+// JWT Authentication - Validate tokens issued by AuthService
+// Note: This project does NOT issue tokens, only validates them
+var jwtSecretKey = builder.Configuration["AuthService:JwtSecretKey"] ?? 
+    builder.Configuration["Jwt:SecretKey"] ??
+    throw new InvalidOperationException("JWT Secret Key must be configured in appsettings.json");
+var jwtIssuer = builder.Configuration["AuthService:JwtIssuer"] ?? 
+    builder.Configuration["Jwt:Issuer"] ?? 
+    "AuthService";
+var jwtAudience = builder.Configuration["AuthService:JwtAudience"] ?? 
+    builder.Configuration["Jwt:Audience"] ?? 
+    "AuthServiceUsers";
 
 builder.Services.AddAuthentication(options =>
 {

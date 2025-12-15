@@ -9,6 +9,5 @@ namespace GoldPriceTracker.Application.Features.Dashboard.Queries;
 /// </summary>
 public class GetDashboardDataQuery : IQuery<UserDashboardViewModel>
 {
-    public int UserId { get; set; }
+    public Guid UserId { get; set; }
 }
-

@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using GoldPriceTracker.Application.Features.Dashboard.Queries;
-using GoldPriceTracker.Application.Interfaces.Repositories;
 using GoldPriceTracker.Shared.Contracts.DTOs;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -11,6 +10,7 @@ namespace GoldPriceTracker.Api.Controllers;
 /// <summary>
 /// Dashboard controller - thin API layer.
 /// Uses CQRS pattern via MediatR for queries.
+/// Aggregates data from external microservices.
 /// </summary>
 [Authorize]
 public class DashboardController : Controller
@@ -68,7 +68,7 @@ public class DashboardController : Controller
                 return Unauthorized();
             }
 
-            // TODO: Implement UpdateProfileCommand
+            // TODO: Implement UpdateProfileCommand - would call UserService
             return Json(new { success = false, message = "Not implemented yet" });
         }
         catch (Exception ex)
@@ -86,14 +86,13 @@ public class DashboardController : Controller
         return RedirectToAction("Index", "Home");
     }
 
-    private int? GetCurrentUserId()
+    private Guid? GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
+        if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
         {
             return userId;
         }
         return null;
     }
 }
-

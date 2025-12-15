@@ -1,5 +1,5 @@
 using GoldPriceTracker.Application.Common.Interfaces;
-using GoldPriceTracker.Application.Services.Dashboard.Interfaces;
+using GoldPriceTracker.Infrastructure.ExternalServices.Interfaces;
 using GoldPriceTracker.Shared.Contracts.DTOs;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -9,18 +9,18 @@ namespace GoldPriceTracker.Application.Features.Dashboard.Queries;
 /// <summary>
 /// Handler for GetDashboardDataQuery.
 /// Implements CQRS pattern - handles the query logic.
-/// Uses feature-based services from Application/Services.
+/// Aggregates data from external microservices (AuthService, UserService).
 /// </summary>
 public class GetDashboardDataQueryHandler : IRequestHandler<GetDashboardDataQuery, UserDashboardViewModel>
 {
-    private readonly IUserDashboardService _dashboardService;
+    private readonly IUserServiceClient _userServiceClient;
     private readonly ILogger<GetDashboardDataQueryHandler> _logger;
 
     public GetDashboardDataQueryHandler(
-        IUserDashboardService dashboardService,
+        IUserServiceClient userServiceClient,
         ILogger<GetDashboardDataQueryHandler> logger)
     {
-        _dashboardService = dashboardService;
+        _userServiceClient = userServiceClient;
         _logger = logger;
     }
 
@@ -28,8 +28,37 @@ public class GetDashboardDataQueryHandler : IRequestHandler<GetDashboardDataQuer
     {
         _logger.LogInformation($"Getting dashboard data for userId: {request.UserId}");
 
-        // Use feature-based dashboard service
-        return await _dashboardService.GetDashboardDataAsync(request.UserId);
+        // Get user profile from UserService
+        var userProfile = await _userServiceClient.GetUserByIdAsync(request.UserId);
+        
+        if (userProfile == null)
+        {
+            _logger.LogWarning($"User not found for userId: {request.UserId}");
+            throw new InvalidOperationException($"User not found for userId: {request.UserId}");
+        }
+
+        // Build dashboard view model
+        // Note: Activities and summary would come from UserService in a real implementation
+        return new UserDashboardViewModel
+        {
+            Profile = new UserProfile
+            {
+                Id = (int)userProfile.Id.GetHashCode(), // Temporary conversion - should be updated when UserProfile uses Guid
+                Username = userProfile.Username,
+                Email = userProfile.Email ?? string.Empty,
+                FullName = userProfile.Username,
+                CreatedAt = userProfile.CreatedAt,
+                LastLoginAt = null,
+                IsActive = userProfile.IsActive
+            },
+            Summary = new AccountSummary
+            {
+                TotalLogins = 0,
+                LastLoginDate = null,
+                MemberSince = userProfile.CreatedAt.ToString("yyyy/MM/dd"),
+                AccountStatus = userProfile.IsActive ? "فعال" : "غیرفعال"
+            },
+            RecentActivities = new List<RecentActivity>()
+        };
     }
 }
-
